@@ -12,6 +12,4 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: Died
-requires:
-  Modern::Perl: 0
-version: 0.01
+version: 0.02

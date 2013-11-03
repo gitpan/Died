@@ -1,29 +1,32 @@
 package Died;
 
-use Modern::Perl;
 use English;
 use Scalar::Util qw(blessed);
 
 use overload q("") => "stringify";
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 sub import {
-    my $caller = caller;
-    no strict 'refs';
+    my $class = shift;
+
+    my $where = shift // caller;
+
+    my $fn = "die";
     my $pkg = __PACKAGE__;
-	*{"${caller}::die"} = \&{"${pkg}::died"};
+    no strict qw(refs);
+    *{"${where}::$fn"} = \&{"${pkg}::$fn"};
 }
 
-sub died {
+sub die (@) {
     if (blessed($ARG[0])) {
         CORE::die(@ARG);
     }
 
     if (0 == @ARG) {
         my (undef, $file, $line, undef) = caller(0);
-        $EVAL_ERROR->PROPAGATE($file, $line) if $EVAL_ERROR->can("PROPAGATE");
-        CORE::die($EVAL_ERROR);
+        $EVAL_ERROR->PROPAGATE($file, $line) if blessed($EVAL_ERROR) && $EVAL_ERROR->can("PROPAGATE");
+        CORE::die;
     }
 
     my %hack = ();
@@ -46,6 +49,14 @@ sub _init {
     $$this{line} = $line;
     $$this{caller} = $sub;
     $$this{arg} = 0 == @ARG ? ["Died"] : [$ARG[0]];
+}
+
+sub file {
+    return($ARG[0]{file});
+}
+
+sub line {
+    return($ARG[0]{line});
 }
 
 sub stringify {
@@ -72,7 +83,6 @@ sub PROPAGATE {
 }
 
 1;
-
 
 __END__
 
